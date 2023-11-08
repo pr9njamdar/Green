@@ -3,6 +3,19 @@
     "name": "green",
     "slug": "green",
     "version": "1.0.0",
+    "permissions": {
+      "camera": {
+        "description": "Allow this app to use your camera for capturing images and videos."
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow green to use your location."
+        }
+      ]
+    ],    
     "assetBundlePatterns": [
       "**/*"
     ]
