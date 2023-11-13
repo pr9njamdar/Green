@@ -1,24 +1,83 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput,Button, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Platform,TextInput,Button, Image,TouchableOpacity, StyleSheet } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
+import { decode } from 'base-64';
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 
 const ComplaintForm = () => {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [selectedPollutionType, setSelectedPollutionType] = useState('Air Pollution'); // Default selection
-
+ 
+  const [image, setImage] = useState(null);
   useEffect(()=>{
     (async()=>{
       await Location.requestForegroundPermissionsAsync({})
     })()
   },[])
+  let handleSubmit;
+if(Platform.OS=='web')
+{
+   handleSubmit=async()=> {
+    try {
+      // Remove the data:image/png;base64 part
+      const base64Data = image.uri.split(',')[1];  
+      // Decode base64 to binary data
+      const binaryData = decode(base64Data);  
+      // Create a Blob from binary data
+      const blob = new Blob([binaryData], { type: 'application/octet-stream' });  
+      // Convert Blob to FormData
+      const formData = new FormData();
+      formData.append('image', blob, 'photo.png');
+  
+      // Example: Sending the file to the server using fetch
+      const response = await fetch('http://localhost:3000/upload', {
+        method: 'POST',
+        body: formData,
+      });
+  
+      console.log('Server response:', response.json());
+    } catch (error) {
+      console.error('Error uploading to server:', error);
+    }
+  }
+}
+// this code is for mobile device this needs to be tested once server has been deployed.
+else{
+  handleSubmit= async()=>{
+    console.log(address,selectedPollutionType,name)
+    const formData=new FormData();
+    formData.append('image',{
+      uri:image.uri,
+      name:'photo.png',
+      type:'image/png'
+    })
+    const response = await fetch('http://localhost:3000/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      console.log('Server response:', response.json());
+  }
 
-  const handleSubmission = () => {    
-    console.log('Name:', name);
-    console.log('Address:', address);
-    console.log('Pollution Type:', selectedPollutionType);
+}
+ 
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0]);
+    }
   };
+
 
   return (
     <View style={styles.container}>
@@ -29,10 +88,15 @@ const ComplaintForm = () => {
         value={name}
         onChangeText={(text) => setName(text)}
       />
-      <Button title ="Get Address" onPress={async()=>{
+      <Button title ="Current Location" onPress={async()=>{
           let add=await Location.getCurrentPositionAsync({});
           setAddress(()=>add)
       }} />
+      
+       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Button title="Pick an image from camera roll" onPress={pickImage} />
+      {image && <Image source={{ uri: image.uri }} style={{ width: 200, height: 200 }} />}
+    </View>
       <Picker
         selectedValue={selectedPollutionType}
         style={styles.picker}
@@ -42,7 +106,7 @@ const ComplaintForm = () => {
         <Picker.Item label="Water Pollution" value="Water Pollution" />
         <Picker.Item label="Plastic" value="Plastic" />
       </Picker>
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmission}>
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
     </View>
