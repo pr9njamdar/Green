@@ -1,69 +1,74 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Platform,TextInput,Button, Image,TouchableOpacity, StyleSheet } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
+import { View, Text, Platform, TextInput, Button, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { decode } from 'base-64';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import getEnvVars from '../config';
+
+const { apiUrl, debug } = getEnvVars();
 
 const ComplaintForm = () => {
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [selectedPollutionType, setSelectedPollutionType] = useState('Air Pollution'); // Default selection
- 
   const [image, setImage] = useState(null);
-  useEffect(()=>{
-    (async()=>{
+  useEffect(() => {
+    (async () => {
       await Location.requestForegroundPermissionsAsync({})
     })()
-  },[])
+  }, [])
   let handleSubmit;
-if(Platform.OS=='web')
-{
-   handleSubmit=async()=> {
-    try {
-      // Remove the data:image/png;base64 part
-      const base64Data = image.uri.split(',')[1];  
-      // Decode base64 to binary data
-      const binaryData = decode(base64Data);  
-      // Create a Blob from binary data
-      const blob = new Blob([binaryData], { type: 'application/octet-stream' });  
-      // Convert Blob to FormData
-      const formData = new FormData();
-      formData.append('image', blob, 'photo.png');
-  
-      // Example: Sending the file to the server using fetch
-      const response = await fetch('http://localhost:3000/upload', {
-        method: 'POST',
-        body: formData,
-      });
-  
-      console.log('Server response:', response.json());
-    } catch (error) {
-      console.error('Error uploading to server:', error);
+  if (Platform.OS == 'web') {
+    handleSubmit = async () => {
+      try {
+        const base64Data = image.uri.split(',')[1];
+        const binaryData = decode(base64Data);
+        const blob = new Blob([binaryData], { type: 'image/png' });
+        const formData = new FormData();
+        formData.append('image', blob, 'photo.png');
+        formData.append('Description', name);                 // make change here...
+        formData.append('type', selectedPollutionType);
+        formData.append('location', address);  // address is not stored properly plz revert back here...
+        formData.append('uid', '6554b160574029879282cff4')
+        console.log(address)
+
+        const response = await fetch(`${apiUrl}/User/RegisterComplaint`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        console.log('Server response:', response.json());
+      } catch (error) {
+        console.error('Error uploading to server:', error);
+      }
     }
   }
-}
-// this code is for mobile device this needs to be tested once server has been deployed.
-else{
-  handleSubmit= async()=>{
-    console.log(address,selectedPollutionType,name)
-    const formData=new FormData();
-    formData.append('image',{
-      uri:image.uri,
-      name:'photo.png',
-      type:'image/png'
-    })
-    const response = await fetch('http://localhost:3000/upload', {
+  // this code is for mobile device this needs to be tested once server has been deployed.
+  else {
+    handleSubmit = async () => {
+      console.log(address, selectedPollutionType, name)
+      const formData = new FormData();
+      formData.append('image', {
+        uri: image.uri,
+        name: 'photo.png',
+        type: 'image/png'
+      })
+      formData.append('Description', name);                 // make change here...
+      formData.append('type', selectedPollutionType);
+      formData.append('location', address);
+      formData.append('uid', '6554b160574029879282cff4')
+      const response = await fetch(`${apiUrl}/User/RegisterComplaint`, {
         method: 'POST',
         body: formData,
       });
       console.log('Server response:', response.json());
+    }
+
   }
 
-}
- 
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
+
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -84,19 +89,23 @@ else{
       <Text style={styles.title}>Complaint Form</Text>
       <TextInput
         style={styles.input}
-        placeholder="Name"
+        placeholder="Description"
         value={name}
         onChangeText={(text) => setName(text)}
       />
-      <Button title ="Current Location" onPress={async()=>{
-          let add=await Location.getCurrentPositionAsync({});
-          setAddress(()=>add)
+      <Button title="Current Location" onPress={async () => {
+        let add = await Location.getCurrentPositionAsync({});
+        add = {
+          lat: add.coords.latitude,
+          long: add.coords.longitude
+        }
+        setAddress(() => add)
       }} />
-      
-       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Button title="Pick an image from camera roll" onPress={pickImage} />
-      {image && <Image source={{ uri: image.uri }} style={{ width: 200, height: 200 }} />}
-    </View>
+
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Button title="Pick an image from camera roll" onPress={pickImage} />
+        {image && <Image source={{ uri: image.uri }} style={{ width: 200, height: 200 }} />}
+      </View>
       <Picker
         selectedValue={selectedPollutionType}
         style={styles.picker}

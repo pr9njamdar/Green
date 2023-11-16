@@ -8,6 +8,10 @@ const MenuPage = () => {
   const goToComplaintOptions = () => {
     navigation.navigate('ComplaintForm');
   };
+  const handleItemClick = (item) => {
+    // Handle item click logic here
+    console.log(`Item clicked: ${item.title}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -15,9 +19,14 @@ const MenuPage = () => {
       <TouchableOpacity style={styles.optionButton} onPress={goToComplaintOptions}>
         <Text style={styles.optionText}>Register Complaint</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.optionButton}>
+      <TouchableOpacity onPress={()=>navigation.navigate('OrganizeDrive')} style={styles.optionButton}>
         <Text style={styles.optionText}>Organize a Drive</Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={()=>navigation.navigate('UpcomingDrives')} style={styles.optionButton}>
+        <Text style={styles.optionText}>upcoming Drives</Text>
+      </TouchableOpacity>
+      
+
     </View>
   );
 };
