@@ -3,10 +3,15 @@
     "name": "green",
     "slug": "green",
     "version": "1.0.0",
-    "permissions": {
-      "camera": {
-        "description": "Allow this app to use your camera for capturing images and videos."
-      }
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE"
+      ],
+      "package": "com.pr9.green"
     },
     "plugins": [
       [
@@ -15,9 +20,14 @@
           "locationAlwaysAndWhenInUsePermission": "Allow green to use your location."
         }
       ]
-    ],    
+    ],
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "c0954544-2b85-4a11-9a38-8f57b47f6aec"
+      }
+    }
   }
 }

@@ -5,6 +5,7 @@ import MenuPage from './components/MenuPage';
 import ComplaintForm from './components/ComplaintForm';
 import OrganizeDrive from './components/OrganizeDrive';
 import UpcomingDrives from './components/UpcomingDrives'
+import AuthScreen from './components/AuthScreen';
 const Stack = createStackNavigator();
 
 function App() {
@@ -18,9 +19,10 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen name="Auth" component={AuthScreen} />
         <Stack.Screen name="Menu" component={MenuPage} />
         <Stack.Screen name="ComplaintForm" component={ComplaintForm} />
-        <Stack.Screen name="OrganizeDrive" component={OrganizeDrive} />
+        <Stack.Screen name="OrganizeDrive" component={OrganizeDrive} />        
         <Stack.Screen name="UpcomingDrives" initialParams={data} component={UpcomingDrives} />
       </Stack.Navigator>
     </NavigationContainer>

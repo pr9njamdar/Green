@@ -5,19 +5,25 @@ import { decode } from 'base-64';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import getEnvVars from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import MapScreen from './MapScreen';
+
+
 
 const { apiUrl, debug } = getEnvVars();
 
 const ComplaintForm = () => {
+
+
+  const navigation = useNavigation();
+
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [selectedPollutionType, setSelectedPollutionType] = useState('Air Pollution'); // Default selection
   const [image, setImage] = useState(null);
-  useEffect(() => {
-    (async () => {
-      await Location.requestForegroundPermissionsAsync({})
-    })()
-  }, [])
+  const [ExpoPushToken, setExpoPushToken] = useState(null)
+ 
   let handleSubmit;
   if (Platform.OS == 'web') {
     handleSubmit = async () => {
@@ -29,9 +35,10 @@ const ComplaintForm = () => {
         formData.append('image', blob, 'photo.png');
         formData.append('Description', name);                 // make change here...
         formData.append('type', selectedPollutionType);
-        formData.append('location', address);  // address is not stored properly plz revert back here...
+        formData.append('latitude', address.latitude);
+        formData.append('longitude', address.longitude);  // address is not stored properly plz revert back here...
         formData.append('uid', '6554b160574029879282cff4')
-        console.log(address)
+
 
         const response = await fetch(`${apiUrl}/User/RegisterComplaint`, {
           method: 'POST',
@@ -56,13 +63,19 @@ const ComplaintForm = () => {
       })
       formData.append('Description', name);                 // make change here...
       formData.append('type', selectedPollutionType);
-      formData.append('location', address);
-      formData.append('uid', '6554b160574029879282cff4')
+      formData.append('latitude', address.latitude);
+      formData.append('longitude', address.longitude);
+      formData.append('uid', await AsyncStorage.getItem('uid') )
       const response = await fetch(`${apiUrl}/User/RegisterComplaint`, {
         method: 'POST',
         body: formData,
       });
-      console.log('Server response:', response.json());
+      const res=await response.json()
+      if(res.success)
+      {
+        alert('Complaint was registered')
+        navigation.navigate('Menu')
+      }
     }
 
   }
@@ -93,14 +106,7 @@ const ComplaintForm = () => {
         value={name}
         onChangeText={(text) => setName(text)}
       />
-      <Button title="Current Location" onPress={async () => {
-        let add = await Location.getCurrentPositionAsync({});
-        add = {
-          lat: add.coords.latitude,
-          long: add.coords.longitude
-        }
-        setAddress(() => add)
-      }} />
+      <MapScreen selectAdd={setAddress}/>
 
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Button title="Pick an image from camera roll" onPress={pickImage} />

@@ -5,9 +5,14 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const userSchema = new mongoose.Schema({
     username: String,
+    pushToken:String,
     password: String,   
     email: String,
     points:Number,
+    homelocation:{
+      lattitude:Number,
+      longitute:Number,
+    },
     Complaints:[{
         complaint:{
             type:mongoose.Schema.Types.ObjectId,
@@ -23,7 +28,10 @@ const userSchema = new mongoose.Schema({
         ref: 'Complaints'
     },
     Date:Date,
-    location:mongoose.Schema.Types.Mixed,
+    location:{
+      lattitude:Number,
+      longitude:Number,
+    },
     Description:String,
     imagepath:String,
   });
@@ -34,8 +42,11 @@ const userSchema = new mongoose.Schema({
     organizer:{type: mongoose.Schema.Types.ObjectId,ref: 'User'},
     Details:String,
     title:String,
-    location:String,
-    praticipants:[{type: mongoose.Schema.Types.ObjectId,ref: 'User'}],
+    location:{
+      latitude:Number,
+      longitude:Number,
+    },
+    
     imagepath:String,
   });
   

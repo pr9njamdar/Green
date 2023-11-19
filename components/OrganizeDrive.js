@@ -3,9 +3,10 @@ import { Button, Text, Platform, TextInput, View, StyleSheet, Image } from 'reac
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import getEnvVars from '../config';
-import { decode } from 'base-64';
 const { apiUrl, debug } = getEnvVars();
-import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import MapScreen from './MapScreen';
 
 const OrganizeDrive = () => {
     const [message, setMessage] = React.useState('');
@@ -13,11 +14,7 @@ const OrganizeDrive = () => {
     const [image, setImage] = React.useState(null);
     const [title, setTitle] = React.useState('');
     const [address,setAddress]=React.useState('');
-    React.useEffect(() => {
-        (async () => {
-          await Location.requestForegroundPermissionsAsync({})
-        })()
-      }, [])
+    
       const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -36,14 +33,11 @@ const OrganizeDrive = () => {
         formData.append('title', title);
         formData.append('message', message);
         formData.append('type', type);
-        formData.append('uid', '6554b160574029879282cff4');
-        formData.append('address',address)
+        formData.append('uid', await AsyncStorage.getItem('uid'));
+        formData.append('latitude',address.latitude)
+        formData.append('longitude',address.longitude)
         console.log(address,title,message,type)
-        if (Platform.OS == 'web') {
-            //  const base64Data = image.uri.split(',')[1];
-            //  const binaryData = decode(base64Data);
-            //  const blob = new Blob([binaryData], { type: 'image/png' });
-            //  formData.append('image', blob, 'photo.png');
+        if (Platform.OS == 'web') {          
         }
         else {
             formData.append('image', {
@@ -56,7 +50,8 @@ const OrganizeDrive = () => {
             method: 'POST',
             body: formData,
         })
-        console.log(response.body);
+        const res=await response.json()
+        console.log(res);
     }
 
   
@@ -70,20 +65,14 @@ const OrganizeDrive = () => {
                 value={title}
                 onChangeText={setTitle}
             />
+            {Platform.OS==='web'?<></>:<MapScreen selectAdd={setAddress}/>}
             <TextInput
                 style={styles.input}
                 placeholder='Message for participants'
                 value={message}
                 onChangeText={setMessage}
             />
-            <Button title="Current Location" onPress={async () => {
-        let add = await Location.getCurrentPositionAsync({});
-        add = {
-          lat: add.coords.latitude,
-          long: add.coords.longitude
-        }
-        setAddress(() => add)
-      }} />
+            
             <Picker
                 style={styles.input}
                 selectedValue={type}

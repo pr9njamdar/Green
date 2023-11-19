@@ -3,7 +3,8 @@ import Constants from 'expo-constants';
 
 const ENV = {
   dev: {
-    apiUrl: 'http://localhost:3000',
+    apiUrl: 'https://ws-test-2azo.onrender.com',
+    //apiUrl: 'http://localhost:3000',
     debug: true,
   },
   prod: {
