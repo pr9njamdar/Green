@@ -17,7 +17,7 @@ Welcome to Citizen Connect, a mobile application designed to empower citizens in
 3. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/Green.git
+    git clone https://github.com/pr9njamdar/Green.git
     ```
 
 4. Navigate to the project directory:
